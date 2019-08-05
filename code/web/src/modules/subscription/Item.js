@@ -1,99 +1,179 @@
 // Imports
-import React, { PureComponent } from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { withRouter } from 'react-router-dom'
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 
 // UI Imports
-import Card from '../../ui/card/Card'
-import Button from '../../ui/button/Button'
-import H4 from '../../ui/typography/H4'
-import Icon from '../../ui/icon'
-import { white, grey2, black } from '../../ui/common/colors'
+import Card from "../../ui/card/Card";
+import Button from "../../ui/button/Button";
+import H4 from "../../ui/typography/H4";
+import Icon from "../../ui/icon";
+import PromptModal from "../../ui/modal/PromptModal";
+import { white, grey2, black } from "../../ui/common/colors";
 
 // App Imports
-import { APP_URL } from '../../setup/config/env'
-import { messageShow, messageHide } from '../common/api/actions'
-import { remove, getListByUser } from '../subscription/api/actions'
+import { APP_URL } from "../../setup/config/env";
+import { messageShow, messageHide } from "../common/api/actions";
+import { remove, getListByUser } from "../subscription/api/actions";
 
 // Component
 class Item extends PureComponent {
-
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
-      isLoading: false
-    }
+      isLoading: false,
+      visible: false
+    };
   }
 
-  onClickUnsubscribe = (id) => {
-    let check = confirm('Are you sure you want to unsubscribe to this crate?')
+  closeModal = () => {
+    this.setState({
+      visible: false
+    });
+  };
 
-    if(check) {
-      this.setState({
-        isLoading: true
+  confirmModal = id => {
+    console.log("confirmed for id:", id);
+    this.setState({
+      isLoading: true,
+      visible: false
+    });
+
+    this.props.messageShow("Unsubscribing, please wait...");
+
+    this.props
+      .remove({ id })
+      .then(response => {
+        if (response.data.errors && response.data.errors.length > 0) {
+          this.props.messageShow(response.data.errors[0].message);
+        } else {
+          this.props.messageShow("Unsubscribed successfully.");
+
+          this.props.getListByUser();
+        }
       })
+      .catch(error => {
+        this.props.messageShow(
+          "There was some error subscribing to this crate. Please try again."
+        );
+      })
+      .then(() => {
+        this.setState({
+          isLoading: false
+        });
 
-      this.props.messageShow('Subscribing, please wait...')
+        window.setTimeout(() => {
+          this.props.messageHide();
+        }, 5000);
+      });
+  };
 
-      this.props.remove({id})
-        .then(response => {
-          if (response.data.errors && response.data.errors.length > 0) {
-            this.props.messageShow(response.data.errors[0].message)
-          } else {
-            this.props.messageShow('Unsubscribed successfully.')
+  onClickUnsubscribe = id => {
+    this.setState({
+      visible: true
+    });
+    // let check = confirm('Are you sure you want to unsubscribe to this crate?')
 
-            this.props.getListByUser()
-          }
-        })
-        .catch(error => {
-          this.props.messageShow('There was some error subscribing to this crate. Please try again.')
-        })
-        .then(() => {
-          this.setState({
-            isLoading: false
-          })
+    // if(check) {
+    //   this.setState({
+    //     isLoading: true
+    //   })
 
-          window.setTimeout(() => {
-            this.props.messageHide()
-          }, 5000)
-        })
-    }
-  }
+    //   this.props.messageShow('Subscribing, please wait...')
+
+    //   this.props.remove({id})
+    //     .then(response => {
+    //       if (response.data.errors && response.data.errors.length > 0) {
+    //         this.props.messageShow(response.data.errors[0].message)
+    //       } else {
+    //         this.props.messageShow('Unsubscribed successfully.')
+
+    //         this.props.getListByUser()
+    //       }
+    //     })
+    //     .catch(error => {
+    //       this.props.messageShow('There was some error subscribing to this crate. Please try again.')
+    //     })
+    //     .then(() => {
+    //       this.setState({
+    //         isLoading: false
+    //       })
+
+    //       window.setTimeout(() => {
+    //         this.props.messageHide()
+    //       }, 5000)
+    //     })
+    // }
+  };
 
   render() {
-    const { id, crate, createdAt } = this.props.subscription
-    const { isLoading } = this.state
+    const { id, crate, createdAt } = this.props.subscription;
+    const { isLoading } = this.state;
 
     return (
-      <Card style={{ width: '18em', backgroundColor: white }}>
-        <p style={{ padding: '2em 3em 0 3em' }}>
-          <img src={`${ APP_URL }/images/crate.png`} alt={ crate.name } style={{ width: '100%' }}/>
+      <Card style={{ width: "18em", backgroundColor: white }}>
+        <p style={{ padding: "2em 3em 0 3em" }}>
+          <img
+            src={`${APP_URL}/images/crate.png`}
+            alt={crate.name}
+            style={{ width: "100%" }}
+          />
         </p>
 
-        <div style={{ padding: '1em 1.2em' }}>
-          <H4 font="secondary" style={{ color: black }}>{ crate.name }</H4>
+        <div style={{ padding: "1em 1.2em" }}>
+          <H4 font="secondary" style={{ color: black }}>
+            {crate.name}
+          </H4>
 
-          <p style={{ color: grey2, marginTop: '1em' }}>{ crate.description }</p>
+          <p style={{ color: grey2, marginTop: "1em" }}>{crate.description}</p>
 
-          <p style={{ textAlign: 'center', marginTop: '1.5em', marginBottom: '1em' }}>
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: "1.5em",
+              marginBottom: "1em"
+            }}
+          >
             <Button
               theme="secondary"
               onClick={this.onClickUnsubscribe.bind(this, id)}
               type="button"
-              disabled={ isLoading }
+              disabled={isLoading}
             >
-              <Icon size={1.2} style={{ color: white }}>remove_circle_outline</Icon> Unsubscribe
+              <Icon size={1.2} style={{ color: white }}>
+                remove_circle_outline
+              </Icon>{" "}
+              Unsubscribe
             </Button>
           </p>
 
-          <p style={{ color: grey2, marginTop: '1em', fontSize: '0.8em', textAlign: 'center' }}>
-            Subscribed on { new Date(parseInt(createdAt)).toDateString() }
+          <p
+            style={{
+              color: grey2,
+              marginTop: "1em",
+              fontSize: "0.8em",
+              textAlign: "center"
+            }}
+          >
+            Subscribed on {new Date(parseInt(createdAt)).toDateString()}
           </p>
         </div>
+
+        <PromptModal
+          visible={this.state.visible}
+          closeModal={this.closeModal}
+          closeModalText={"Close"}
+          confirmModalText={"Unsubscribe"}
+          confirmModal={() => this.confirmModal(id)}
+          modalHeaderText={"Unsubscribe"}
+          modalBodyText={`Are you sure you want to unsubscribe from the crate "${
+            crate.name
+          }" ?`}
+        />
       </Card>
-    )
+    );
   }
 }
 
@@ -105,13 +185,16 @@ Item.propTypes = {
   getListByUser: PropTypes.func.isRequired,
   messageShow: PropTypes.func.isRequired,
   messageHide: PropTypes.func.isRequired
-}
+};
 
 // Component State
 function itemState(state) {
   return {
     user: state.user
-  }
+  };
 }
 
-export default connect(itemState, { remove, getListByUser, messageShow, messageHide })(withRouter(Item))
+export default connect(
+  itemState,
+  { remove, getListByUser, messageShow, messageHide }
+)(withRouter(Item));

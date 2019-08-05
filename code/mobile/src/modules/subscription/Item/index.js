@@ -10,6 +10,7 @@ import crateImage from '../../../../assets/images/crate.png'
 // UI Imports
 import { blockMargin } from '../../../ui/common/responsive'
 import Button from '../../../ui/button/Button'
+import Modal from '../../../ui/modal/Modal'
 import styles from './styles'
 
 // App Imports
@@ -24,7 +25,8 @@ class Item extends PureComponent {
     super(props)
 
     this.state = {
-      isLoading: false
+      isLoading: false,
+      visible: false
     }
   }
 
@@ -35,15 +37,18 @@ class Item extends PureComponent {
   }
 
   unsubscribeCheck = () => {
-    Alert.alert(
-      'Unsubscribe',
-      'Are you sure you want to stop receiving this crate?',
-      [
-        { text: 'KEEP RECEIVING', onPress: () => {} },
-        { text: 'UNSUBSCRIBE', onPress: this.unsubscribe }
-      ],
-      { cancelable: true }
-    )
+    this.setState({
+      visible: true
+    })
+    // Alert.alert(
+    //   'Unsubscribe',
+    //   'Are you sure you want to stop receiving this crate?',
+    //   [
+    //     { text: 'KEEP RECEIVING', onPress: () => {} },
+    //     { text: 'UNSUBSCRIBE', onPress: this.unsubscribe }
+    //   ],
+    //   { cancelable: true }
+    // )
   }
 
   unsubscribe = () => {
@@ -113,6 +118,10 @@ class Item extends PureComponent {
             onPress={this.unsubscribeCheck}
           />
         </View>
+
+        <Modal visible={this.state.visible}>
+          {steps[this.state.currentStep]}
+        </Modal>
       </View>
     )
   }
