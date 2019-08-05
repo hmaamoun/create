@@ -31,7 +31,8 @@ const PromptModal = props => {
         zIndex: 9,
         visibility: visible ? "visible" : "hidden",
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.25s ease-in-out"
+        transition: "opacity 0.25s ease-in-out",
+        backgroundColor: "rgba(0,0,0,0.6)"
       }}
     >
       <div
